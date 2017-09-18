@@ -2,6 +2,13 @@
 streaming tools for monitoring and troubleshooting live streams
 Note: these scripts should be placed behind a user/password protected website!
 
+## HLSjs-player
+
+An HLS.js player created from scratch with custom controls.
+
+TODO:
+- cleanup code
+- separate the components (css, js, etc.)  -> Left as single sheet for ease of distribution.
 
 ## Monitor.php
 
