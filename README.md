@@ -7,8 +7,9 @@ Note: these scripts should be placed behind a user/password protected website!
 An HLS.js player created from scratch with custom controls.
 
 TODO:
-- cleanup code
+- cleanup code!!!
 - separate the components (css, js, etc.)  -> Left as single sheet for ease of distribution.
+- create button on player for quality switching
 
 ## Monitor.php
 
