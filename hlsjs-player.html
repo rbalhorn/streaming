@@ -41,6 +41,10 @@
         padding: 8px 12px;
         width: 12px;
     }
+    .controlbar .selected {
+        color: #8080ff;
+        text-shadow: 1px 1px 2px #111;
+    }
     .controlbar .left {
         float: left;
     }
@@ -149,11 +153,12 @@
 <body>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <div id="player">
-        <video id="video" src="http://vodorigin-secure.majorleaguegaming.com/estv/amlst:jyxQjs2BXNx/master.m3u8"></video>
+        <video id="video" src="https://uldslive-lh.akamaihd.net/i/0923gwseng_1@175368/master.m3u8"></video>
         <!-- TODO: dynamically load by a javascript -->
         <div class="controlbar">
             <a href="#" id="play-pause" class="left fa fa-play"></a>
             <a href="#" id="fullscreen" class="right fa fa-arrows-alt"></a>
+            <a href="#" id="cc" class="right fa fa-cc" aria-hidden="true"></a>
             <input id="vol-control" type="range" min="0" max="100" step="1" oninput="SetVolume(this.value)" onchange="SetVolume(this.value)" class="right volume" />
             <a href="#" id="sound" class="right fa fa-volume-up" aria-hidden="true"></a>
             <div class="middle">
@@ -191,6 +196,8 @@
             hls.on(Hls.Events.MANIFEST_PARSED,function(event, data) {
                 console.log(Hls.Events); // log possible events
                 console.log(data.levels); // log level / rendition details
+                data.enableCEA708Captions = true; // enable 708 captions
+                console.log(video.textTracks);
             });
 
             hls.on(Hls.Events.LEVEL_SWITCHED, function(event, data) {
@@ -207,53 +214,85 @@
             hls.on(Hls.Events.FRAG_LOADED,function(event, data) {
                 console.log(data); // log frag events
             });
+
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                console.log('error => ');
+                console.log(data);
+                if (data.fatal) {
+                    switch(data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            // try to recover network error
+                            console.log("fatal network error encountered, try to recover");
+                            hls.startLoad();
+                            if(playState == 1){
+                                video.play();
+                            }
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            console.log("fatal media error encountered, try to recover");
+                            hls.recoverMediaError();
+                            if(playState == 1){
+                                video.play();
+                            }
+                            break;
+                        default:
+                            // cannot recover
+                            console.log('this is beyond repair. EJECT!');
+                            hls.destroy();
+                            break;
+                    }
+                }
+            });
+
         }
 
         //Create objects
         var qualityLevels;
         var vid = document.getElementsByTagName('video')[0];
+        var loadonce = 0; // prevent items loading more than once
         vid.addEventListener('loadedmetadata', function() {
             document.getElementById("dvr").setAttribute("max", vid.duration); // set max attribute for dvr slider
             console.log('video duration: '+vid.duration);
             qualityLevels = hls.levels; // HLS Quality Levels
-
-            // create quality buttons
-
-            // create auto quality button
-            var autobtn = document.createElement("button");
-            var autotext = document.createTextNode("auto");
-            autobtn.appendChild(autotext);
-            autobtn.setAttribute("class", "quality");
-            autobtn.setAttribute("data-quality-level", -1);
-            var autoParentDiv = document.getElementById("external_buttons");
-            autoParentDiv.appendChild(autobtn);
-            autobtn.addEventListener('click', function(){
-                hls.currentLevel = -1;
-                console.log("setting quality level to: "+this.getAttribute("data-quality-level"));
-            });
-
-            // buttons for each quality level
-            var btn_index = 0;
-            for (let value of qualityLevels) {
-                var btn = document.createElement("button");
-                if (typeof value.name != 'undefined'){
-                    console.log('wait');
-                    var text = document.createTextNode(value.name);
-                } else {
-                    var bitrate_text_calc = value.bitrate / 1000;
-                    var bitrate_text = bitrate_text_calc+' kbps';
-                    var text = document.createTextNode(bitrate_text);
-                }
-                btn.appendChild(text);
-                btn.setAttribute("class", "quality");
-                btn.setAttribute("data-quality-level", btn_index);
-                var parentDiv = document.getElementById("external_buttons");
-                parentDiv.appendChild(btn);
-                btn.addEventListener('click', function(){
-                    hls.currentLevel = this.getAttribute("data-quality-level");
+            if(loadonce == 0){
+                // create auto quality button
+                var autobtn = document.createElement("button");
+                var autotext = document.createTextNode("auto");
+                autobtn.appendChild(autotext);
+                autobtn.setAttribute("class", "quality");
+                autobtn.setAttribute("data-quality-level", -1);
+                var autoParentDiv = document.getElementById("external_buttons");
+                autoParentDiv.appendChild(autobtn);
+                autobtn.addEventListener('click', function(){
+                    hls.currentLevel = -1;
                     console.log("setting quality level to: "+this.getAttribute("data-quality-level"));
                 });
-                btn_index++;
+
+                // buttons for each quality level
+                var btn_index = 0;
+                for (let value of qualityLevels) {
+                    var btn = document.createElement("button");
+                    if (typeof value.name != 'undefined'){
+                        console.log('wait');
+                        var text = document.createTextNode(value.name);
+                    } else {
+                        var bitrate_text_calc = value.bitrate / 1000;
+                        var bitrate_text = bitrate_text_calc+' kbps';
+                        var text = document.createTextNode(bitrate_text);
+                    }
+                    btn.appendChild(text);
+                    btn.setAttribute("class", "quality");
+                    btn.setAttribute("data-quality-level", btn_index);
+                    var parentDiv = document.getElementById("external_buttons");
+                    parentDiv.appendChild(btn);
+                    btn.addEventListener('click', function(){
+                        hls.currentLevel = this.getAttribute("data-quality-level");
+                        console.log("setting quality level to: "+this.getAttribute("data-quality-level"));
+                    });
+                    btn_index++;
+                }
+                loadonce = 1;
+                console.log('loadonce =  '+loadonce);
             }
             // display Video Info
             console.log(hls.audioTracks);
@@ -288,6 +327,20 @@
                 e.target.classList.remove('fa-volume-up');
                 e.target.classList.add('fa-volume-off');
                 vid.muted = true;
+            }
+        });
+
+        //Caption Button toggle and operation
+        var capState = 0; // default captions off by default
+        document.getElementById("cc").addEventListener("click", function(e){
+            if(capState == 0){
+                capState = 1;
+                e.target.classList.add('selected');
+                vid.textTracks[0].mode = 'showing';
+            } else {
+                capState = 0;
+                e.target.classList.remove('selected');
+                vid.textTracks[0].mode = 'hidden';
             }
         });
 
