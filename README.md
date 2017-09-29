@@ -1,26 +1,14 @@
-# streaming
-streaming tools for monitoring and troubleshooting live streams
-Note: these scripts should be placed behind a user/password protected website!
-
 ## HLSjs-player
 
 An HLS.js player created from scratch with custom controls.
+Not completed.
+
+Known Issues:
+Can only load one player on a page at a time
+Clicking on buttons will cause the page to scroll sometimes
 
 TODO:
-- cleanup code!!!
-- separate the components (css, js, etc.)  -> Left as single sheet for ease of distribution.
-- create button on player for quality switching
-
-## Monitor.php
-
-This tool allows for a user to push websites to be viewed on a monitor wall.  It works in 3 parts.
-
-- *the form:* a user enters the urls for each monitor to display.
-- *the client:* the client is determined by adding a query string (eg ?m=1) to determine its monitor id.  The client then checks for changes every few seconds for updates to its url it should display.
-- *The data:* this is synced with a simple JSON file.
-
-TODO:
-- use database instead of JSON file
-- use htaccess to use pretty urls instead of query strings
-- break out styles and javascripts
-- clean up code
+prevent default clicks on buttons
+create quality switcher controls for player
+remove ids from controls so that multiple videos can be loaded with working controls
+look into BufferStallErrors (more likely Akamai related)
