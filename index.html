@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HLS.js</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="player/player.css?ver=2">
+
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <div class="player"><!--  videos must be wrapped in div with class="player"  -->
+        <video id="video1" src="https://uldslive-lh.akamaihd.net/i/0923gwseng_1@175368/master.m3u8" poster="https://www.raconteur.net/wp-content/uploads/2016/11/GG_verisign_1-1280x720.jpg"></video>
+    </div>
+
+    <!-- Quality Switching controls -->
+    <div id="external_buttons"></div>
+
+<div id="streaminfo">
+    <h3>Current Quality Info:</h3>
+    <ul>
+        <li><span class="info_label">Label:</span><span id="current_name"></span></li>
+        <li><span class="info_label">Bitrate:</span><span id="current_bitrate"></span></li>
+        <li><span class="info_label">Framesize:</span><span id="current_resolution"></span></li>
+        <li><span class="info_label">Video Codec:</span><span id="current_video_codec"></span></li>
+        <li><span class="info_label">Audio Codec:</span><span id="current_audio_codec"></span></li>
+        <li><span class="info_label">Quality Level Manifest URL:</span><span id="current_url"></span></li>
+        <li><span class="info_label">Error:</span><span id="current_error"></span></li>
+    </ul>
+</div>
+
+<script type="text/javascript" src="player/player.js"></script>
+
+
+
+
+
+</body>
+</html>

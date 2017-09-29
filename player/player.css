@@ -1,0 +1,139 @@
+    .player {
+        position: relative;
+        max-width: 640px;
+        max-height: 360px;
+        display: flex;
+        flex-direction: row;
+    }
+    video {
+        width: 100%;
+        height: 100%;
+    }
+    .controlbar{
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        /*height: 40px;*/
+        width: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        /*z-index: 99;*/
+        z-index: 2147483647;
+        display: none;
+    }
+    .player:hover .controlbar{
+        display:block;
+    }
+    .controlbar a {
+        display: block;
+        color: #FFF;
+        font-size: 1.2em;
+        text-decoration: none;
+        padding: 8px 12px;
+        width: 12px;
+    }
+    .controlbar .selected {
+        color: #8080ff;
+        text-shadow: 1px 1px 2px #111;
+    }
+    .controlbar .left {
+        float: left;
+    }
+    .controlbar .right {
+        float: right;
+    }
+    .controlbar .middle {
+        overflow: hidden;
+    }
+    .controlbar input[type=range] {
+          -webkit-appearance: none;
+          width: 100px;
+          margin: 16px 0;
+    }
+    .controlbar input[type=range]:focus {
+        outline: none;
+    }
+    .controlbar input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 2px;
+        cursor: pointer;
+        background: #ffffff;
+        border-radius: 0px;
+        border: 0px solid #fff;
+    }
+    .controlbar input[type=range]::-webkit-slider-thumb {
+        border: 0.1px solid #fff;
+        height: 12px;
+        width: 24px;
+        border-radius: 28px;
+        background: #8080ff;
+        cursor: pointer;
+        -webkit-appearance: none;
+        margin-top: -5px;
+    }
+    .controlbar input[type=range]:focus::-webkit-slider-runnable-track {
+        background: #ffffff;
+    }
+    .controlbar input[type=range]::-moz-range-track {
+        width: 100%;
+        height: 2px;
+        cursor: pointer;
+        background: #ffffff;
+        border-radius: 0px;
+        border: 0px solid #fff;
+    }
+    .controlbar input[type=range]::-moz-range-thumb {
+        border: 0.1px solid #fff;
+        height: 12px;
+        width: 24px;
+        border-radius: 28px;
+        background: #8080ff;
+        cursor: pointer;
+    }
+    .controlbar input[type=range]::-ms-track {
+        width: 100%;
+        height: 2px;
+        cursor: pointer;
+        background: transparent;
+        border-color: transparent;
+        color: transparent;
+    }
+    .controlbar input[type=range]::-ms-fill-lower {
+        background: #fff;
+        border: 0px solid #fff;
+        border-radius: 0px;
+    }
+    .controlbar input[type=range]::-ms-fill-upper {
+        background: #ffffff;
+        border: 0px solid #fff;
+        border-radius: 0px;
+    }
+    .controlbar input[type=range]::-ms-thumb {
+        border: 0.1px solid #fff;
+        height: 12px;
+        width: 24px;
+        border-radius: 28px;
+        background: #8080ff;
+        cursor: pointer;
+        height: 2px;
+    }
+    .controlbar input[type=range]:focus::-ms-fill-lower {
+        background: #ffffff;
+    }
+    .controlbar input[type=range]:focus::-ms-fill-upper {
+        background: #ffffff;
+    }
+    .controlbar .dvr {
+        width: 100% !important;
+    }
+    .controlbar .volume {
+        width: 100px !important;
+    }
+    /* hide fullscreen controls */
+    video::-webkit-media-controls-enclosure {
+        display:none !important;
+    }
+
+    /*  For metadata display purposes only */
+    .info_label {
+
+    }
