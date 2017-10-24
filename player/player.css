@@ -15,7 +15,7 @@
         top: 0;
         bottom: 0;
         right: 0;
-        left: 75%;
+        left: 50%;
         height: 100%;
         /*width: 320px;*/
         /*height: 360px;*/
@@ -25,12 +25,18 @@
         overflow: hidden;
     }
     .player-settings .container {
-        padding: 2em;
+        padding: 1em;
+        width: 40%;
+        float: right;
     }
     .player-settings .container a {
         color: #FFF;
         text-decoration: none;
         line-height: 1.1em
+    }
+    .player-settings ul {
+        list-style-type: none;
+        padding: 0;
     }
     video:-webkit-full-screen + .player-settings {
         font-size: 2em;

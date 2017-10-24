@@ -4,10 +4,11 @@ TODO:
     remove ids from controls so that multiple videos can be loaded with working controls {double check to ensure this is done}
     look into BufferStallErrors (more likely Akamai related)
     set DVR slider off with text as "Live" if duration is <= 30 seconds (number may need to be tested
+    work on compatibility wtih Firefox, IE, and Safari
 */
 
-(function(){ // create enclosed code to prevent collision with other js code
-
+// create enclosed code to prevent collision with other js code
+(function () {
 const config = {
           autoStartLoad: true, // (default true)
   	      startPosition : -1, // start at live point (default -1)
@@ -28,28 +29,33 @@ function hlsvideo(v) {
     const video = document.getElementById(v);
     const autoParentDiv = document.getElementById("external_buttons"); // TODO: remove when stats not needed
 
+
     // Create Controlbar and insert it before the video element
     // TODO: find a way to automatically wrap the video element.
     video.insertAdjacentHTML('afterend',
-        '<div class="player-settings"><div class="container"><h3>Select Quality</h3></div></div>'+
-        '<div class="controlbar">'+
-            '<a href="#" class="left fa fa-play play-pause"></a>'+
-            '<a href="#" class="right fa fa-arrows-alt fullscreen"></a>'+
-            '<a href="#" class="right fa fa-cogs quality"></a>'+
-            '<a href="#" class="right fa fa-cc cc" aria-hidden="true"></a>'+
-            '<input type="range" min="0" max="100" step="1" class="right volume vol-control" />'+
-            '<a href="#" class="right fa fa-volume-up sound" aria-hidden="true"></a>'+
-            '<div class="middle">'+
-                '<input type="range" min="0" max="100" step="1" value="0" class="dvr" />'+
-            '</div>'+
-        '</div>'
+        `<div class="player-settings">
+            <div class="container"><h3>Select Quality</h3><ul class="quality-listing"></ul></div>
+            <div class="container"><h3>Captions</h3><ul class="caption-listing"></ul></div>
+        </div>
+        <div class="controlbar">
+            <a href="#" class="left fa fa-play play-pause"></a>
+            <a href="#" class="right fa fa-arrows-alt fullscreen"></a>
+            <a href="#" class="right fa fa-cogs quality"></a>
+            <!-- <a href="#" class="right fa fa-cc cc" aria-hidden="true"></a> -->
+            <input type="range" min="0" max="100" step="1" class="right volume vol-control" />
+            <a href="#" class="right fa fa-volume-up sound" aria-hidden="true"></a>
+            <div class="middle">
+                <input type="range" min="0" max="100" step="1" value="0" class="dvr" />
+            </div>
+        </div>`
     );
 
     // div elements
     const player_div = document.getElementById(video.id).parentNode;
     // quality switcher panel
     const playersettings_div = player_div.getElementsByClassName('player-settings')[0];
-    const playersettings_container = playersettings_div.getElementsByClassName('container')[0];
+    const playersettings_container = playersettings_div.getElementsByClassName('quality-listing')[0];
+    const ccsettings_listing = playersettings_div.getElementsByClassName('caption-listing')[0];
     // control elements
     const controlbar = player_div.getElementsByClassName('controlbar')[0];
     const pauseplay_btn = player_div.getElementsByClassName("play-pause")[0];
@@ -60,34 +66,33 @@ function hlsvideo(v) {
     const dvr_slider = player_div.getElementsByClassName("dvr")[0];
     const volume_slider = player_div.getElementsByClassName('vol-control')[0];
 
-
     if(Hls.isSupported()) {
 
         var hls = new Hls(config);
         hls.loadSource(video.getAttribute('src'));
         hls.attachMedia(video); // uncomment if issues arise loading media -> currently set to load on play button click
 
-        hls.on(Hls.Events.MANIFEST_PARSED,function(event, data) {
+        hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
             console.log("MANIFEST_PARSED =>");
             console.log(Hls.Events); // log possible events
             console.log(data.levels); // log level / rendition details
             console.log(video.textTracks); // log caption and subtitle tracks
-            console.log(video.textTracks[0].getAttribute('src'));
+            // console.log(video.textTracks[0].getAttribute('src'));
         });
 
         // TODO: remove this sectoin eventually
-        hls.on(Hls.Events.LEVEL_SWITCHED, function(event, data) {
+        hls.on(Hls.Events.LEVEL_SWITCHED, (event, data) => {
             // display stats on page
             console.log("LEVEL_SWITCHED =>");
             console.log(qualityLevels[hls.currentLevel]);
         });
 
-        hls.on(Hls.Events.FRAG_LOADED,function(event, data) {
+        hls.on(Hls.Events.FRAG_LOADED, (event, data) => {
             console.log("FRAG_LOADED =>");
             console.log(data); // log frag events
         });
 
-        hls.on(Hls.Events.ERROR, function (event, data) {
+        hls.on(Hls.Events.ERROR, (event, data) => {
             console.log("ERROR =>");
             console.log(data);
             if (data.fatal) {
@@ -119,9 +124,9 @@ function hlsvideo(v) {
     }
 
     //Create MSE objects
+    // TODO: simplify this to work like CC Panel
     var qualityLevels;
-    var loadonce = 0; // prevent items loading more than once
-    video.addEventListener('loadedmetadata', function() {
+    video.addEventListener('loadedmetadata', () => {
         dvr_slider.setAttribute("max", video.duration); // set max attribute for dvr slider
         console.log('video duration: '+video.duration);
         console.log("currentLevel => "+hls.currentLevel); // -1 means auto
@@ -129,67 +134,78 @@ function hlsvideo(v) {
         // quality switch panel
         qualityLevels = hls.levels; // HLS Quality Levels
         console.log('loadedmetadata');
-        if(loadonce == 0){
-            var qautobtn = document.createElement("a");
-            var autotext = document.createTextNode("auto");
-            qautobtn.innerHTML = '<a href="#">auto</a><br />';
-            qautobtn.setAttribute("class", "quality");
-            qautobtn.setAttribute("data-quality-level", -1);
-            playersettings_container.appendChild(qautobtn); // TODO: broken
-            qautobtn.addEventListener('click', function(){
-                hls.currentLevel = -1;
+        var qautobtn = document.createElement("div"); // TODO: convert to UL LI
+        var autotext = document.createTextNode("auto");
+        qautobtn.innerHTML = '<a href="#">auto</a>';
+        qautobtn.setAttribute("class", "quality");
+        qautobtn.setAttribute("data-quality-level", -1);
+        playersettings_container.appendChild(qautobtn); // TODO: broken
+        qautobtn.addEventListener('click', () => {
+            hls.currentLevel = -1;
+            console.log("setting quality level to: "+this.getAttribute("data-quality-level"));
+            quality_btn.classList.remove('selected');
+            playersettings_div.classList.remove('show'); // TODO:  get parent then child of class
+            qualityState = 0;
+        });
+        // buttons for each quality level
+        let btn_index = 0;
+        for (let value of qualityLevels) {
+            var qbtn = document.createElement("div"); // TODO: convert to UL LI
+            if (typeof value.name != 'undefined'){
+                var text = document.createTextNode(value.name);
+            } else {
+                var bitrate_text_calc = value.bitrate / 1000;
+                var bitrate_text = bitrate_text_calc+' kbps';
+                // var text = document.createTextNode(bitrate_text); // TODO: fix this  not being called
+            }
+            qbtn.innerHTML = '<a href="#">'+bitrate_text+'</a>';
+            qbtn.setAttribute("class", "quality");
+            qbtn.setAttribute("href", "#");
+            qbtn.setAttribute("data-quality-level", btn_index);
+            playersettings_container.appendChild(qbtn);
+            qbtn.addEventListener('click', () => {
+                hls.currentLevel = this.getAttribute("data-quality-level");
                 console.log("setting quality level to: "+this.getAttribute("data-quality-level"));
-                quality_btn.classList.remove('selected');
+                quality_btn.classList.add('selected');
                 playersettings_div.classList.remove('show'); // TODO:  get parent then child of class
                 qualityState = 0;
             });
-            // buttons for each quality level
-            var btn_index = 0;
-            for (let value of qualityLevels) {
-                var qbtn = document.createElement("a");
-                if (typeof value.name != 'undefined'){
-                    var text = document.createTextNode(value.name);
-                } else {
-                    var bitrate_text_calc = value.bitrate / 1000;
-                    var bitrate_text = bitrate_text_calc+' kbps';
-                    var text = document.createTextNode(bitrate_text);
-                }
-                qbtn.innerHTML = '<a href="#">'+bitrate_text+'</a><br />';
-                qbtn.setAttribute("class", "quality");
-                qbtn.setAttribute("href", "#");
-                qbtn.setAttribute("data-quality-level", btn_index);
-                playersettings_container.appendChild(qbtn);
-                qbtn.addEventListener('click', function(){
-                    hls.currentLevel = this.getAttribute("data-quality-level");
-                    console.log("setting quality level to: "+this.getAttribute("data-quality-level"));
-                    quality_btn.classList.add('selected');
-                    playersettings_div.classList.remove('show'); // TODO:  get parent then child of class
-                    qualityState = 0;
-                });
-                btn_index++;
-            }
-            loadonce = 1;
-            console.log('loadonce =  '+loadonce);
+            btn_index++;
         }
-
-        // TODO: create caption panel - may need to load inside loadonce
-        // if(video.textTracks.length > 1){ // if there is more than one CC track use panel
-        // console.log(video.textTracks[0]);
-            // for (i = 0; i < video.textTracks.length; i++) {
-            //     console.log('LABEL: '+video.textTracks[i].label);
-            // }
-            // for(let track of video.textTracks){
-            //     console.log('hi');
-            // }
-        // }
-
-        // TODO: create audio panel
-
     }); // end loaded metadata
+
+    // Create CC Panel
+    video.addEventListener('loadeddata', () => { // CC wont display correctly until all data loaded
+        let cc_index = 0;
+        for (let track of video.textTracks) {
+            let cctext;
+            let ccbtn = document.createElement("div"); // TODO: convert to UL LI
+            if (typeof track.label != 'undefined' && track.label != ''){
+                cctext = track.label;
+            } else if (typeof track.language != 'undefined' && track.language != '') {
+                cctext = track.language;
+            } else {
+                cctext = `unlabled ${track.kind} track`;
+            }
+            let tempLI = document.createElement("li");
+            tempLI.innerHTML = `<a href="#" data-cc-options="${cc_index}" class="cc-item">${cctext}</a>`;
+            ccsettings_listing.appendChild(tempLI);
+            tempLI.addEventListener('click', (e) => {
+                let cc_enabledTrack = e.target.getAttribute("data-cc-options");
+                video.textTracks[cc_enabledTrack].mode = 'showing';
+                console.log(`turning on track: ${cc_enabledTrack}`);
+                // cc_btn.classList.add('selected');
+                playersettings_div.classList.remove('show'); // TODO:  get parent then child of class
+                qualityState = 0;
+            });
+            cc_index++;
+        }
+    });
+
 
     //Play Pause Button toggle and operation
     var playState = 0; // default paused state
-    pauseplay_btn.addEventListener("click", function(e){
+    pauseplay_btn.addEventListener("click", (e) => {
         e.preventDefault();
         if(!hls.media){ //used if you want to keep poster frame up longer
             hls.attachMedia(video);
@@ -209,7 +225,7 @@ function hlsvideo(v) {
 
     //Sound Button toggle and operation
     var volState = 1; // default sound on
-    sound_btn.addEventListener("click", function(e){
+    sound_btn.addEventListener("click", (e) => {
         e.preventDefault();
         if(volState == 0){
             volState = 1;
@@ -224,34 +240,33 @@ function hlsvideo(v) {
         }
     });
 
-    //Caption Button toggle and operation
-    var capState = 0; // default captions off by default
-    cc_btn.addEventListener("click", function(e){
-        e.preventDefault();
-        if(capState == 0){
-            if(video.textTracks.length > 1){
-                e.target.classList.add('selected');
-                playersettings_div.classList.add('show');
-            } else if (video.textTracks.length == 1){ // only one CC track
-                capState = 1;
-                e.target.classList.add('selected');
-                video.textTracks[0].mode = 'showing';
-                console.log('cues =====>');
-                console.log(video.textTracks[0].cues);
-            }else {
-                console.log("NO CC Tracks to display");
-            }
-
-        } else {
-            capState = 0;
-            e.target.classList.remove('selected');
-            video.textTracks[0].mode = 'hidden';
-        }
-    });
+    // //Caption Button toggle and operation
+    // var capState = 0; // default captions off by default
+    // cc_btn.addEventListener("click", (e) => {
+    //     e.preventDefault();
+    //     if(capState == 0){
+    //         if(video.textTracks.length > 1){ // multiple subtitle tracks
+    //             e.target.classList.add('selected');
+    //             playersettings_div.classList.add('show');
+    //         } else if (video.textTracks.length == 1){ // only one subtitle track
+    //             capState = 1;
+    //             e.target.classList.add('selected');
+    //             video.textTracks[0].mode = 'showing';
+    //             console.log('cues =====>');
+    //             console.log(video.textTracks[0].cues);
+    //         } else { // try to turn on 608 CC tracks if available
+    //             console.log("NO CC or subtitles available");
+    //         }
+    //     } else {
+    //         capState = 0;
+    //         e.target.classList.remove('selected');
+    //         video.textTracks[0].mode = 'hidden';
+    //     }
+    // });
 
     //Quality Button toggle and operation
     var qualityState = 0; // default captions off by default
-    quality_btn.addEventListener("click", function(e){
+    quality_btn.addEventListener("click", (e) => {
         e.preventDefault();
         if(qualityState == 0){
             qualityState = 1;
@@ -267,7 +282,7 @@ function hlsvideo(v) {
     });
 
     // fullscreen button
-    fullscreen_btn.addEventListener("click", function(e){
+    fullscreen_btn.addEventListener("click", (e) => {
         e.preventDefault();
         // TODO: create controls for other browsers.  Full screen only works in Webkit below
         if (!document.webkitFullscreenElement) {
@@ -297,7 +312,7 @@ function hlsvideo(v) {
 
 
     // Update the seek bar as the video plays
-    video.addEventListener('timeupdate', function() {
+    video.addEventListener('timeupdate', () => {
         var value = video.currentTime;
         dvr_slider.value = value;
         // var str = 'U+313x';
@@ -315,11 +330,11 @@ function hlsvideo(v) {
 
     });
 
-    volume_slider.addEventListener('input', function(){
+    volume_slider.addEventListener('input', () => {
         video.volume = this.value / 100;
     });
 
-    dvr_slider.addEventListener('input', function(){
+    dvr_slider.addEventListener('input', () => {
         video.currentTime = this.value;
     });
 
