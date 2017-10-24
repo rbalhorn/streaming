@@ -1,7 +1,6 @@
 /*
 TODO:
-    prevent default clicks on buttons
-    create quality switcher controls for player
+    clean-up code (convert vars to const, remove duplicates, es6 function syntax, backtics for logging, possibly move to class
     remove ids from controls so that multiple videos can be loaded with working controls
     look into BufferStallErrors (more likely Akamai related)
 */
@@ -20,13 +19,13 @@ var config = {
           startLevel: undefined, // override start level (rendition) for starting
           startFragPrefetch: false, // Start prefetching start fragment although media not attached yet. (default: false)
           enableWebVTT: true, // enable VTT captions if available
-          enableCEA708Captions: false, // enable embedded captions if available (seems its pulling in 608 however)
+          enableCEA708Captions: true, // enable embedded captions if available (seems its pulling in 608 however)
           minAutoBitrate: 0 // Return the capping/min bandwidth value that could be used by automatic level selection algorithm. Useful when browser or tab of the browser is not in the focus and bandwidth drops
   };
 
-function hlsvideo(video) {
-    var video = document.getElementById(video);
-    var autoParentDiv = document.getElementById("external_buttons"); // TODO: remove when stats not needed
+function hlsvideo(v) {
+    const video = document.getElementById(v);
+    const autoParentDiv = document.getElementById("external_buttons"); // TODO: remove when stats not needed
 
     // Create Controlbar and insert it before the video element
     // TODO: find a way to automatically wrap the video element.
@@ -46,21 +45,19 @@ function hlsvideo(video) {
     );
 
     // div elements
-    var player_div = document.getElementById(video.id).parentNode;
-
+    const player_div = document.getElementById(video.id).parentNode;
     // quality switcher panel
-    var playersettings_div = player_div.getElementsByClassName('player-settings')[0];
-    var playersettings_container = playersettings_div.getElementsByClassName('container')[0];
-
+    const playersettings_div = player_div.getElementsByClassName('player-settings')[0];
+    const playersettings_container = playersettings_div.getElementsByClassName('container')[0];
     // control elements
-    var controlbar = player_div.getElementsByClassName('controlbar')[0];
-    var pauseplay_btn = player_div.getElementsByClassName("play-pause")[0];
-    var quality_btn = player_div.getElementsByClassName("quality")[0];
-    var cc_btn = player_div.getElementsByClassName("cc")[0];
-    var sound_btn = player_div.getElementsByClassName("sound")[0];
-    var fullscreen_btn = player_div.getElementsByClassName("fullscreen")[0];
-    var dvr_slider = player_div.getElementsByClassName("dvr")[0];
-    var volume_slider = player_div.getElementsByClassName('vol-control')[0];
+    const controlbar = player_div.getElementsByClassName('controlbar')[0];
+    const pauseplay_btn = player_div.getElementsByClassName("play-pause")[0];
+    const quality_btn = player_div.getElementsByClassName("quality")[0];
+    const cc_btn = player_div.getElementsByClassName("cc")[0];
+    const sound_btn = player_div.getElementsByClassName("sound")[0];
+    const fullscreen_btn = player_div.getElementsByClassName("fullscreen")[0];
+    const dvr_slider = player_div.getElementsByClassName("dvr")[0];
+    const volume_slider = player_div.getElementsByClassName('vol-control')[0];
 
 
     if(Hls.isSupported()) {
@@ -70,6 +67,7 @@ function hlsvideo(video) {
         hls.attachMedia(video); // uncomment if issues arise loading media -> currently set to load on play button click
 
         hls.on(Hls.Events.MANIFEST_PARSED,function(event, data) {
+            console.log("MANIFEST_PARSED =>");
             console.log(Hls.Events); // log possible events
             console.log(data.levels); // log level / rendition details
             console.log(video.textTracks); // log caption and subtitle tracks
@@ -79,33 +77,17 @@ function hlsvideo(video) {
         // TODO: remove this sectoin eventually
         hls.on(Hls.Events.LEVEL_SWITCHED, function(event, data) {
             // display stats on page
-            document.getElementById("current_name").innerHTML = qualityLevels[hls.currentLevel].name;
-            document.getElementById("current_bitrate").innerHTML = qualityLevels[hls.currentLevel].bitrate;
-            document.getElementById("current_resolution").innerHTML = qualityLevels[hls.currentLevel].width+'x'+qualityLevels[hls.currentLevel].height;
-            document.getElementById("current_video_codec").innerHTML = qualityLevels[hls.currentLevel].videoCodec;
-            document.getElementById("current_audio_codec").innerHTML = qualityLevels[hls.currentLevel].audioCodec;
-            document.getElementById("current_url").innerHTML = qualityLevels[hls.currentLevel].url;
-            document.getElementById("current_error").innerHTML = qualityLevels[hls.currentLevel].error;
+            console.log("LEVEL_SWITCHED =>");
+            console.log(qualityLevels[hls.currentLevel]);
         });
 
         hls.on(Hls.Events.FRAG_LOADED,function(event, data) {
+            console.log("FRAG_LOADED =>");
             console.log(data); // log frag events
-            // console.log(data.frag);
-            // let oldtexttrack = video.getElementsByTagName('track')[0];
-            // video.removeChild(oldtexttrack);
-            // let thistexttrack = document.createElement('track');
-            // thistexttrack.setAttribute('src', 'spa_'+data.frag.loadIdx+'.vtt');
-            // video.appendChild(thistexttrack);
-            // console.log(video.getElementsByTagName('track')[0].getAttribute('src'));
         });
 
-        // TODO: working but only for audio
-        // hls.on(Hls.Events.FRAG_PARSING_METADATA,function(event, data) {
-        //     console.log('meta =>');
-        //     console.log(data); // log subtitle events
-        // });
-
         hls.on(Hls.Events.ERROR, function (event, data) {
+            console.log("ERROR =>");
             console.log(data);
             if (data.fatal) {
                 switch(data.type) {
@@ -139,50 +121,20 @@ function hlsvideo(video) {
     var qualityLevels;
     var loadonce = 0; // prevent items loading more than once
     video.addEventListener('loadedmetadata', function() {
-
-        // let track = this.addTextTrack("captions", "English", "en");
-        // track.mode = "showing";
-        // console.log('CAPTIONS!!!!!!!!!!!!!!!');
-        // console.log(track);
-        // track.addCue(new VTTCue(0, 12, "거기, 저기, 그곳, 저곳"));
-        // track.addCue(new VTTCue(18.7, 21.5, "This blade has a dark past."));
-        // track.addCue(new VTTCue(22.8, 26.8, "It has shed much innocent blood."));
-        //
-        // let oldtexttrack = video.getElementsByTagName('track')[0];
-        // video.removeChild(oldtexttrack);
-        // let thistexttrack = document.createElement('track');
-        // thistexttrack.setAttribute('src', 'spa_1.vtt');
-        // video.appendChild(thistexttrack);
-        // thistexttrack.mode = "showing";
-        // console.log(video.getElementsByTagName('track')[0].getAttribute('src'));
-        // video.textTracks[0].mode = "showing";
-        // console.log(video.textTracks);
-
-
         dvr_slider.setAttribute("max", video.duration); // set max attribute for dvr slider
         console.log('video duration: '+video.duration);
+        console.log("currentLevel => "+hls.currentLevel); // -1 means auto
+
+        // quality switch panel
         qualityLevels = hls.levels; // HLS Quality Levels
+        console.log('loadedmetadata');
         if(loadonce == 0){
-            // create auto quality button TODO: remove after buttons added to player
-            var autobtn = document.createElement("button");
             var qautobtn = document.createElement("a");
             var autotext = document.createTextNode("auto");
             qautobtn.innerHTML = '<a href="#">auto</a><br />';
-            autobtn.appendChild(autotext);
-            // qautobtn.appendChild(qautotext);
-            autobtn.setAttribute("class", "quality");
             qautobtn.setAttribute("class", "quality");
-            autobtn.setAttribute("data-quality-level", -1);
             qautobtn.setAttribute("data-quality-level", -1);
-            var player_div = document.getElementById(video.id).parentNode; // TODO: change to class for when multiple players
-            var playersettings_div = player_div.getElementsByClassName('player-settings')[0];
-            var playersettings_container = playersettings_div.getElementsByClassName('container')[0];
-            autoParentDiv.appendChild(autobtn);
             playersettings_container.appendChild(qautobtn); // TODO: broken
-            autobtn.addEventListener('click', function(){
-                hls.currentLevel = -1;
-                console.log("setting quality level to: "+this.getAttribute("data-quality-level"));
-            });
             qautobtn.addEventListener('click', function(){
                 hls.currentLevel = -1;
                 console.log("setting quality level to: "+this.getAttribute("data-quality-level"));
@@ -190,11 +142,9 @@ function hlsvideo(video) {
                 playersettings_div.classList.remove('show'); // TODO:  get parent then child of class
                 qualityState = 0;
             });
-
             // buttons for each quality level
             var btn_index = 0;
             for (let value of qualityLevels) {
-                var btn = document.createElement("button");
                 var qbtn = document.createElement("a");
                 if (typeof value.name != 'undefined'){
                     var text = document.createTextNode(value.name);
@@ -203,24 +153,11 @@ function hlsvideo(video) {
                     var bitrate_text = bitrate_text_calc+' kbps';
                     var text = document.createTextNode(bitrate_text);
                 }
-                btn.appendChild(text);
                 qbtn.innerHTML = '<a href="#">'+bitrate_text+'</a><br />';
-                btn.setAttribute("class", "quality");
                 qbtn.setAttribute("class", "quality");
                 qbtn.setAttribute("href", "#");
-                btn.setAttribute("data-quality-level", btn_index);
                 qbtn.setAttribute("data-quality-level", btn_index);
-                var parentDiv = document.getElementById("external_buttons");
-                var player_div = document.getElementById(video.id).parentNode; // TODO: change to class for when multiple players
-                var playersettings_div = player_div.getElementsByClassName('player-settings')[0];
-                var playersettings_container = playersettings_div.getElementsByClassName('container')[0];
-                parentDiv.appendChild(btn);
                 playersettings_container.appendChild(qbtn);
-                // console.log(playersettings_container);
-                btn.addEventListener('click', function(){
-                    hls.currentLevel = this.getAttribute("data-quality-level");
-                    console.log("setting quality level to: "+this.getAttribute("data-quality-level"));
-                });
                 qbtn.addEventListener('click', function(){
                     hls.currentLevel = this.getAttribute("data-quality-level");
                     console.log("setting quality level to: "+this.getAttribute("data-quality-level"));
@@ -233,7 +170,21 @@ function hlsvideo(video) {
             loadonce = 1;
             console.log('loadonce =  '+loadonce);
         }
-    });
+
+        // TODO: create caption panel - may need to load inside loadonce
+        // if(video.textTracks.length > 1){ // if there is more than one CC track use panel
+        // console.log(video.textTracks[0]);
+            // for (i = 0; i < video.textTracks.length; i++) {
+            //     console.log('LABEL: '+video.textTracks[i].label);
+            // }
+            // for(let track of video.textTracks){
+            //     console.log('hi');
+            // }
+        // }
+
+        // TODO: create audio panel
+
+    }); // end loaded metadata
 
     //Play Pause Button toggle and operation
     var playState = 0; // default paused state
@@ -277,11 +228,19 @@ function hlsvideo(video) {
     cc_btn.addEventListener("click", function(e){
         e.preventDefault();
         if(capState == 0){
-            capState = 1;
-            e.target.classList.add('selected');
-            video.textTracks[0].mode = 'showing';
-            console.log('cues =====>');
-            console.log(video.textTracks[0].cues);
+            if(video.textTracks.length > 1){
+                e.target.classList.add('selected');
+                playersettings_div.classList.add('show');
+            } else if (video.textTracks.length == 1){ // only one CC track
+                capState = 1;
+                e.target.classList.add('selected');
+                video.textTracks[0].mode = 'showing';
+                console.log('cues =====>');
+                console.log(video.textTracks[0].cues);
+            }else {
+                console.log("NO CC Tracks to display");
+            }
+
         } else {
             capState = 0;
             e.target.classList.remove('selected');
