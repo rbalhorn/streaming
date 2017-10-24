@@ -1,13 +1,14 @@
 /*
 TODO:
     clean-up code (convert vars to const, remove duplicates, es6 function syntax, backtics for logging, possibly move to class
-    remove ids from controls so that multiple videos can be loaded with working controls
+    remove ids from controls so that multiple videos can be loaded with working controls {double check to ensure this is done}
     look into BufferStallErrors (more likely Akamai related)
+    set DVR slider off with text as "Live" if duration is <= 30 seconds (number may need to be tested
 */
 
 (function(){ // create enclosed code to prevent collision with other js code
 
-var config = {
+const config = {
           autoStartLoad: true, // (default true)
   	      startPosition : -1, // start at live point (default -1)
           capLevelToPlayerSize: false, // limits renditions based on max frame size (false default)
