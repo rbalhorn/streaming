@@ -23,15 +23,35 @@ const config = {
           enableWebVTT: true, // enable VTT captions if available
           enableCEA708Captions: true, // enable embedded captions if available (seems its pulling in 608 however)
           minAutoBitrate: 0 // Return the capping/min bandwidth value that could be used by automatic level selection algorithm. Useful when browser or tab of the browser is not in the focus and bandwidth drops
-  };
+    };
+
+    function createDependencies() { // function created so that it can be moved if necessary
+        // TODO: check if already loaded (not needed to load multiple times if multiple players are used)
+        let buttoncss = document.createElement("link");
+        buttoncss.setAttribute("rel", "stylesheet");
+        buttoncss.setAttribute("type", "text/css");
+        buttoncss.setAttribute("href", "//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css");
+        document.getElementsByTagName("head")[0].appendChild(buttoncss);
+        let playercss = document.createElement("link");
+        playercss.setAttribute("rel", "stylesheet");
+        playercss.setAttribute("type", "text/css");
+        playercss.setAttribute("href", "player/player.css");
+        document.getElementsByTagName("head")[0].appendChild(playercss);
+        // document.write('<script src="http://cdn.jsdelivr.net/npm/hls.js@latest" type="text/javascript"></script>');
+        // Doesn't work. seems to want to load after the Hls object is required.
+        // let hlsjsscript = document.createElement('script');
+        // hlsjsscript.setAttribute("type","text/javascript");
+        // hlsjsscript.setAttribute("rel","subresource");
+        // hlsjsscript.setAttribute("src", "//cdn.jsdelivr.net/npm/hls.js@latest");
+        // document.getElementsByTagName("head")[0].appendChild(hlsjsscript);
+    } createDependencies(); // create on load
 
 function hlsvideo(v) {
     const video = document.getElementById(v);
     const autoParentDiv = document.getElementById("external_buttons"); // TODO: remove when stats not needed
 
-
     // Create Controlbar and insert it before the video element
-    // TODO: find a way to automatically wrap the video element.
+    // TODO: find a way to automatically wrap the video element in div
     video.insertAdjacentHTML('afterend',
         `<div class="player-settings">
             <div class="container"><h3>Select Quality</h3><ul class="quality-listing"></ul></div>
@@ -175,7 +195,8 @@ function hlsvideo(v) {
     }); // end loaded metadata
 
     // Create CC Panel
-    video.addEventListener('loadeddata', () => { // CC wont display correctly until all data loaded
+    //TODO: set an CC off button selection
+    video.addEventListener('loadeddata', () => { // CC wont display correctly until all data loaded, so this wont work on loadedmetadata
         let cc_index = 0;
         for (let track of video.textTracks) {
             let cctext;
@@ -187,10 +208,10 @@ function hlsvideo(v) {
             } else {
                 cctext = `unlabled ${track.kind} track`;
             }
-            let tempLI = document.createElement("li");
-            tempLI.innerHTML = `<a href="#" data-cc-options="${cc_index}" class="cc-item">${cctext}</a>`;
-            ccsettings_listing.appendChild(tempLI);
-            tempLI.addEventListener('click', (e) => {
+            let currLI = document.createElement("li");
+            currLI.innerHTML = `<a href="#" data-cc-options="${cc_index}" class="cc-item">${cctext}</a>`;
+            ccsettings_listing.appendChild(currLI);
+            currLI.addEventListener('click', (e) => {
                 let cc_enabledTrack = e.target.getAttribute("data-cc-options");
                 video.textTracks[cc_enabledTrack].mode = 'showing';
                 console.log(`turning on track: ${cc_enabledTrack}`);
